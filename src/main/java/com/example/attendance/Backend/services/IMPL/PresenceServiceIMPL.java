@@ -34,7 +34,7 @@ public class PresenceServiceIMPL implements PresenceService {
         return presenceRepository.findById(id).orElseThrow(() -> new RuntimeException("Attendance not found: " + id));
     }
 
-    public Presence saveAttendance(Presence presence) {
+   public Presence saveAttendance(Presence presence) {
         logger.info("Saving presence for employee: {}", presence.getEmployeeId());
 
         // Conversion manuelle si nécessaire
@@ -48,6 +48,23 @@ public class PresenceServiceIMPL implements PresenceService {
         }
         return presenceRepository.save(presence);
     }
+     /*@Override
+    public Presence saveAttendance(Presence presence)  {
+        // Sauvegarder le payroll
+        Presence savedPayroll = presenceRepository.save(presence);
+
+        // Ajouter le payroll à l'employé
+        Employee employee = employeeRepository.findById(presence.getEmployeeId())
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        // Ajouter le payroll à la liste des payrolls de l'employé
+        employee.getAttendances().add(savedPayroll);
+
+        // Sauvegarder l'employé avec le nouveau payroll
+        employeeRepository.save(employee);
+
+        return savedPayroll;
+    }*/
 
 
 
@@ -58,7 +75,7 @@ public class PresenceServiceIMPL implements PresenceService {
         presence.setDate(presenceDetails.getDate());
         presence.setCheckInTime(presenceDetails.getCheckInTime());
         presence.setCheckOutTime(presenceDetails.getCheckOutTime());
-        presence.setEmployeeId(presenceDetails.getEmployeeId());
+        //presence.setEmployeeId(presenceDetails.getEmployeeId());
         calculateWorkedHours(presence);
         return presenceRepository.save(presence);
     }

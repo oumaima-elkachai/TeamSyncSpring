@@ -22,8 +22,7 @@ public class Presence {
     @Id
     private String id;
 
-    @Field("employeeId") // Ceci est crucial
-    @NotNull
+    @Field("employeeId")
     private String employeeId;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
@@ -34,6 +33,7 @@ public class Presence {
 
     @JsonFormat(pattern = "HH:mm")
     private LocalTime checkOutTime;
+
 
 
     @Getter
@@ -71,7 +71,7 @@ public class Presence {
     }
 
     //Getters
-    @JsonIgnore
+
     public String getEmployeeId() {
         return employeeId;
     }
