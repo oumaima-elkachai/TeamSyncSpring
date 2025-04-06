@@ -34,49 +34,26 @@ public class PresenceServiceIMPL implements PresenceService {
         return presenceRepository.findById(id).orElseThrow(() -> new RuntimeException("Attendance not found: " + id));
     }
 
-   public Presence saveAttendance(Presence presence) {
+    @Override
+    public Presence saveAttendance(Presence presence) {
         logger.info("Saving presence for employee: {}", presence.getEmployeeId());
 
-        // Conversion manuelle si nécessaire
-        if (presence.getCheckInTime() != null && presence.getCheckOutTime() != null) {
-            // Calcul des heures travaillées
-            Duration duration = Duration.between(
-                    LocalTime.parse(presence.getCheckInTime().toString()),
-                    LocalTime.parse(presence.getCheckOutTime().toString())
-            );
-            presence.setHoursWorked(duration.toHours());
-        }
+        calculateWorkedHours(presence);
+
         return presenceRepository.save(presence);
     }
-     /*@Override
-    public Presence saveAttendance(Presence presence)  {
-        // Sauvegarder le payroll
-        Presence savedPayroll = presenceRepository.save(presence);
-
-        // Ajouter le payroll à l'employé
-        Employee employee = employeeRepository.findById(presence.getEmployeeId())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
-
-        // Ajouter le payroll à la liste des payrolls de l'employé
-        employee.getAttendances().add(savedPayroll);
-
-        // Sauvegarder l'employé avec le nouveau payroll
-        employeeRepository.save(employee);
-
-        return savedPayroll;
-    }*/
 
 
 
+    public Presence updateAttendance(String id, Presence updatedPresence) {
+        Presence presence = presenceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Presence not found"));
 
-    @Override
-    public Presence updateAttendance(String id, Presence presenceDetails) {
-        Presence presence = getAttendanceById(id);
-        presence.setDate(presenceDetails.getDate());
-        presence.setCheckInTime(presenceDetails.getCheckInTime());
-        presence.setCheckOutTime(presenceDetails.getCheckOutTime());
-        //presence.setEmployeeId(presenceDetails.getEmployeeId());
+        presence.setDate(updatedPresence.getDate());
+        presence.setCheckInTime(updatedPresence.getCheckInTime());
+        presence.setCheckOutTime(updatedPresence.getCheckOutTime());
         calculateWorkedHours(presence);
+
         return presenceRepository.save(presence);
     }
 
@@ -93,5 +70,7 @@ public class PresenceServiceIMPL implements PresenceService {
     public void deleteAttendance(String id) {
         presenceRepository.deleteById(id);
     }
+
+
 }
 

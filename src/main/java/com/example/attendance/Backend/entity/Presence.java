@@ -25,6 +25,7 @@ public class Presence {
     @Field("employeeId")
     private String employeeId;
 
+
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
 

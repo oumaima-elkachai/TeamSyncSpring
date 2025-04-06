@@ -2,7 +2,10 @@
 package com.example.attendance.Backend.controllers;
 
 import com.example.attendance.Backend.dto.PresenceDTO;
+import com.example.attendance.Backend.entity.Employee;
 import com.example.attendance.Backend.entity.Presence;
+import com.example.attendance.Backend.repository.EmployeeRepository;
+import com.example.attendance.Backend.repository.PresenceRepository;
 import com.example.attendance.Backend.services.interfaces.EmployeeService;
 import com.example.attendance.Backend.services.interfaces.PresenceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +13,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:4200")
@@ -22,6 +29,10 @@ public class PresenceController {
     private PresenceService presenceService;
     @Autowired  // Ajoutez cette annotation
     private EmployeeService employeeService;
+    @Autowired
+    private EmployeeRepository employeeRepository;
+    @Autowired
+    private PresenceRepository presenceRepository;
 
 
 
@@ -67,16 +78,58 @@ public class PresenceController {
         return ResponseEntity.ok(saved);
     }
 
-    @PutMapping("/{id}")
+    /*@PutMapping("/update/{id}")
     public ResponseEntity<Presence> updateAttendance(@PathVariable String id, @RequestBody Presence presenceDetails) {
         Presence updated = presenceService.updateAttendance(id, presenceDetails);
         return ResponseEntity.ok(updated);
+    }*/
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Presence> update(@PathVariable String id, @RequestBody Map<String, Object> body) {
+        Presence presence = parsePresenceFromBody(body);
+        return ResponseEntity.ok(presenceService.updateAttendance(id, presence));
     }
+
+    private Presence parsePresenceFromBody(Map<String, Object> body) {
+        Presence presence = new Presence();
+        presence.setEmployeeId((String) body.get("employeeId"));
+        presence.setDate(LocalDate.parse((String) body.get("date")));
+        presence.setCheckInTime(LocalTime.parse((String) body.get("checkInTime")));
+        presence.setCheckOutTime(LocalTime.parse((String) body.get("checkOutTime")));
+        return presence;
+    }
+
 
     @DeleteMapping("/{id}")
     public void deleteAttendance(@PathVariable String id) {
         presenceService.deleteAttendance(id);
     }
+
+    @PutMapping("/updateCheckOutTime")
+    public ResponseEntity<?> updateCheckOutTime(@RequestBody Map<String, String> data) {
+        String employeeId = data.get("employeeId");
+        String dateStr = data.get("date");
+        String checkOutTimeStr = data.get("checkOutTime");
+
+        try {
+            LocalDate date = LocalDate.parse(dateStr); // conversion ici
+            LocalTime checkOutTime = LocalTime.parse(checkOutTimeStr);
+
+            Optional<Presence> attendanceOpt = presenceRepository.findByEmployeeIdAndDate(employeeId, date);
+
+            if (attendanceOpt.isPresent()) {
+                Presence attendance = attendanceOpt.get();
+                attendance.setCheckOutTime(checkOutTime);
+                presenceRepository.save(attendance);
+                return ResponseEntity.ok("Check-out mis à jour");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Présence non trouvée pour l'employé à cette date");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erreur : " + e.getMessage());
+        }
+    }
+
 
 
 }
