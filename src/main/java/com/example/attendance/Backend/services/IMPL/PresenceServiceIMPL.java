@@ -19,8 +19,7 @@ public class PresenceServiceIMPL implements PresenceService {
 
     @Autowired
     private PresenceRepository presenceRepository;
-    @Autowired
-    private EmployeeRepository employeeRepository;
+
 
     private static final Logger logger = LoggerFactory.getLogger(PresenceServiceIMPL.class);
 

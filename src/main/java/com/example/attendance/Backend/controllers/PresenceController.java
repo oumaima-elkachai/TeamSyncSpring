@@ -89,6 +89,11 @@ public class PresenceController {
         Presence presence = parsePresenceFromBody(body);
         return ResponseEntity.ok(presenceService.updateAttendance(id, presence));
     }
+    @PutMapping("/updatePresenceManually/{id}")
+    public ResponseEntity<Presence> updatePresenceManually(@PathVariable String id, @RequestBody Presence presence) {
+        Presence updated = presenceService.updateAttendance(id, presence);
+        return ResponseEntity.ok(updated);
+    }
 
     private Presence parsePresenceFromBody(Map<String, Object> body) {
         Presence presence = new Presence();
@@ -129,6 +134,50 @@ public class PresenceController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erreur : " + e.getMessage());
         }
     }
+
+
+    @PutMapping("/updatePresenceManually")
+    public ResponseEntity<?> updatePresenceManually(@RequestBody Map<String, String> data) {
+        String employeeId = data.get("employeeId");
+        String dateStr = data.get("date");
+        String checkInTimeStr = data.get("checkInTime");
+        String checkOutTimeStr = data.get("checkOutTime");
+
+        if (employeeId == null || dateStr == null) {
+            return ResponseEntity.badRequest().body("employeeId et date sont obligatoires.");
+        }
+
+        try {
+            LocalDate date = LocalDate.parse(dateStr);
+            Optional<Presence> presenceOpt = presenceRepository.findByEmployeeIdAndDate(employeeId, date);
+
+            if (presenceOpt.isPresent()) {
+                Presence presence = presenceOpt.get();
+
+                if (checkInTimeStr != null && !checkInTimeStr.isEmpty()) {
+                    presence.setCheckInTime(LocalTime.parse(checkInTimeStr));
+                }
+
+                if (checkOutTimeStr != null && !checkOutTimeStr.isEmpty()) {
+                    presence.setCheckOutTime(LocalTime.parse(checkOutTimeStr));
+                }
+
+                presenceRepository.save(presence);
+                return ResponseEntity.ok("Présence mise à jour manuellement.");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Aucune présence trouvée pour cet employé à cette date.");
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Erreur lors de la mise à jour manuelle : " + e.getMessage());
+        }
+    }
+
+
+
+
 
 
 

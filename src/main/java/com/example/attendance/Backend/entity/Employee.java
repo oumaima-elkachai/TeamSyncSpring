@@ -34,6 +34,8 @@ public class Employee {
     @JsonIgnoreProperties({"employee"}) // Évite la référence circulaire
     private List<Presence> attendances;
 
+
+
     // Modifiez le getter pour éviter la sérialisation infinie
     @JsonIgnore
     public List<Presence> getAttendances() {
